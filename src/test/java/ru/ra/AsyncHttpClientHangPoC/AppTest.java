@@ -18,7 +18,7 @@ import com.ning.http.client.Response;
 import com.ning.http.client.extra.ListenableFutureAdapter;
 
 public class AppTest {
-    
+
     private static AsyncHttpClient createClient() {
         final AsyncHttpClientConfig.Builder configBuilder =
             new AsyncHttpClientConfig.Builder();
@@ -35,34 +35,36 @@ public class AppTest {
     @Test
     public void notRedirecting() throws MalformedURLException,
             InterruptedException, ExecutionException, TimeoutException {
-        AsyncHttpClient httpClient = createClient();
-        try {
-            String addressThatWillNotRedirect =
-                "http://download.eclipse.org/technology/epp/downloads/release/mars/1/eclipse-jee-mars-1-win32-x86_64.zip";
-            ListenableFuture<Response> head =
-                reqHead(httpClient, new URL(addressThatWillNotRedirect));
-            head.get(10, TimeUnit.SECONDS);
-        } finally {
-            httpClient.close();
-        }
+        String addressThatWillNotRedirect =
+            "http://download.eclipse.org/technology/epp/downloads/release/mars/1/eclipse-jee-mars-1-win32-x86_64.zip";
+        head(addressThatWillNotRedirect);
     }
 
     @Test
     public void redirecting() throws InterruptedException, ExecutionException,
             TimeoutException, MalformedURLException {
+        String addressThatWillRedirect =
+            "http://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/mars/1/eclipse-jee-mars-1-win32-x86_64.zip";
+        head(addressThatWillRedirect);
+    }
+
+    private void head(String address)
+            throws MalformedURLException, InterruptedException,
+            ExecutionException, TimeoutException {
+        System.out.println("loading " + address);
         AsyncHttpClient httpClient = createClient();
         try {
-            String addressThatWillRedirect =
-                "http://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/mars/1/eclipse-jee-mars-1-win32-x86_64.zip";
             ListenableFuture<Response> head =
-                reqHead(httpClient, new URL(addressThatWillRedirect));
+                reqHead(httpClient, new URL(address));
             head.get(10, TimeUnit.SECONDS);
         } finally {
             httpClient.close();
+            System.out.println();
         }
     }
 
-    public static ListenableFuture<Response> reqHead(AsyncHttpClient httpClient, final URL url) {
+    public static ListenableFuture<Response> reqHead(
+            AsyncHttpClient httpClient, final URL url) {
         final long started = System.currentTimeMillis();
         com.ning.http.client.ListenableFuture<Response> head =
             httpClient.prepareHead(url.toExternalForm()).execute(
